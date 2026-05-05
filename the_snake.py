@@ -82,7 +82,7 @@ class Snake(GameObject):
 
     def __init__(self):
         super().__init__()
-        self.length = 2
+        self.length = 1
         self.positions = [self.position]
         self.direction = RIGHT
         self.next_direction = None
