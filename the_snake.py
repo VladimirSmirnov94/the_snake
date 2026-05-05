@@ -1,4 +1,4 @@
-from random import choice, randint
+from random import randint
 
 import pygame
 
@@ -41,24 +41,28 @@ clock = pygame.time.Clock()
 
 # Тут опишите все классы игры.
 class GameObject:
+    """Базовый класс для игровых объектов."""
+
     def __init__(self) -> None:
         self.position = ((SCREEN_WIDTH // 2), (SCREEN_HEIGHT // 2))
         self.body_color = None
 
-
     def draw(self) -> None:
+        """Метод отрисовки объекта."""
         pass
 
 
 class Apple(GameObject):
+    """Класс яблока."""
+
     def __init__(self, snake_positions=None):
         super().__init__()
         self.body_color = APPLE_COLOR
         self.randomize_position(snake_positions)
 
-
     def randomize_position(self, snake_positions: list = None) -> None:
-         while True:
+        """Устанавливает случайную позицию для яблока."""
+        while True:
             self.position = (
                 randint(0, GRID_WIDTH - 1) * GRID_SIZE,
                 randint(0, GRID_HEIGHT - 1) * GRID_SIZE
@@ -66,15 +70,16 @@ class Apple(GameObject):
             if snake_positions is None or self.position not in snake_positions:
                 break
 
-
-
     def draw(self):
+        """Отрисовывает яблоко."""
         rect = pygame.Rect(self.position, (GRID_SIZE, GRID_SIZE))
         pygame.draw.rect(screen, self.body_color, rect)
-        pygame.draw.rect(screen, BORDER_COLOR, rect, 1)    
+        pygame.draw.rect(screen, BORDER_COLOR, rect, 1)
 
 
 class Snake(GameObject):
+    """Класс змейки."""
+
     def __init__(self):
         super().__init__()
         self.length = 2
@@ -85,17 +90,19 @@ class Snake(GameObject):
         self.last = None
 
     def update_direction(self):
+        """Обновляет направление движения змейки."""
         if self.next_direction:
             self.direction = self.next_direction
             self.next_direction = None
 
     def move(self):
+        """Двигает змейку."""
         head_x, head_y = self.get_head_position()
         new_head = (
             head_x + self.direction[0] * GRID_SIZE,
             head_y + self.direction[1] * GRID_SIZE
         )
-        
+
         # выход за границы
         if new_head[0] < 0:
             new_head = (SCREEN_WIDTH - GRID_SIZE, new_head[1])
@@ -105,7 +112,7 @@ class Snake(GameObject):
             new_head = (new_head[0], SCREEN_HEIGHT - GRID_SIZE)
         elif new_head[1] >= SCREEN_HEIGHT:
             new_head = (new_head[0], 0)
-        
+
         self.positions.insert(0, new_head)
         if len(self.positions) > self.length:
             self.last = self.positions.pop()
@@ -113,29 +120,29 @@ class Snake(GameObject):
             self.last = None
 
     def draw(self) -> None:
+        """Отрисовывает змейку."""
         for position in self.positions[:-1]:
             rect = (pygame.Rect(position, (GRID_SIZE, GRID_SIZE)))
             pygame.draw.rect(screen, self.body_color, rect)
             pygame.draw.rect(screen, BORDER_COLOR, rect, 1)
-        
+
         # Голова змеи
         head_rect = pygame.Rect(self.positions[0], (GRID_SIZE, GRID_SIZE))
         pygame.draw.rect(screen, self.body_color, head_rect)
         pygame.draw.rect(screen, BORDER_COLOR, head_rect, 1)
 
-
-        # Последний элемент      
+        # Последний элемент
         if self.last:
             last_rect = pygame.Rect(self.last, (GRID_SIZE, GRID_SIZE))
             pygame.draw.rect(screen, BOARD_BACKGROUND_COLOR, last_rect)
 
-
     def get_head_position(self) -> tuple:
+        """Возвращает позицию головы змейки."""
         return self.positions[0]
-    
 
     # Сброс змеи в дефолт
     def reset(self) -> None:
+        """Сбрасывает змейку в начальное состояние."""
         self.position = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
         self.length = 1
         self.positions = [self.position]
@@ -146,6 +153,7 @@ class Snake(GameObject):
 
 # Функция обработки действий пользователя
 def handle_keys(game_object):
+    """Обрабатывает нажатия клавиш."""
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -162,30 +170,31 @@ def handle_keys(game_object):
 
 
 def main():
+    """Основная функция игры."""
     # Инициализация PyGame:
     pygame.init()
     # Тут нужно создать экземпляры классов.
     snake = Snake()
     apple = Apple(snake.positions)
 
-    
     while True:
         clock.tick(SPEED)
         handle_keys(snake)
         snake.update_direction()
-        snake.move()
 
         # Проверка съедания яблока
         if snake.get_head_position() == apple.position:
             snake.length += 1
             apple.randomize_position(snake.positions)
-        
-        # Проверка столкновения с собой 
+
+        snake.move()
+
+        # Проверка столкновения с собой
         head = snake.get_head_position()
         if head in snake.positions[1:]:
             snake.reset()
             apple.randomize_position(snake.positions)
-        
+
         screen.fill(BOARD_BACKGROUND_COLOR)
         apple.draw()
         snake.draw()
@@ -194,35 +203,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-# Метод draw класса Apple
-# def draw(self):
-#     rect = pygame.Rect(self.position, (GRID_SIZE, GRID_SIZE))
-#     pygame.draw.rect(screen, self.body_color, rect)
-#     pygame.draw.rect(screen, BORDER_COLOR, rect, 1)
-
-# # Метод draw класса Snake
-# def draw(self):
-#     for position in self.positions[:-1]:
-#         rect = (pygame.Rect(position, (GRID_SIZE, GRID_SIZE)))
-#         pygame.draw.rect(screen, self.body_color, rect)
-#         pygame.draw.rect(screen, BORDER_COLOR, rect, 1)
-
-#     # Отрисовка головы змейки
-#     head_rect = pygame.Rect(self.positions[0], (GRID_SIZE, GRID_SIZE))
-#     pygame.draw.rect(screen, self.body_color, head_rect)
-#     pygame.draw.rect(screen, BORDER_COLOR, head_rect, 1)
-
-#     # Затирание последнего сегмента
-#     if self.last:
-#         last_rect = pygame.Rect(self.last, (GRID_SIZE, GRID_SIZE))
-#         pygame.draw.rect(screen, BOARD_BACKGROUND_COLOR, last_rect)
-
-
-
-# Метод обновления направления после нажатия на кнопку
-# def update_direction(self):
-#     if self.next_direction:
-#         self.direction = self.next_direction
-#         self.next_direction = None
