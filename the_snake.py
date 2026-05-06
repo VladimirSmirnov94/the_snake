@@ -1,5 +1,6 @@
 import random
 import sys
+
 import pygame as pg
 
 # Константы для размеров поля и сетки
@@ -27,10 +28,10 @@ MIN_SPEED = 5
 MAX_SPEED = 40
 SPEED_STEP = 2
 
-# Флаг для тестов
+# Проверка, тестовая ли среда
 _is_testing = 'pytest' in sys.modules or 'unittest' in sys.modules
 
-# Инициализация Pygame (только не в тестах)
+# Инициализация Pygame, если не тестовая среда
 if not _is_testing:
     pg.init()
     pg.font.init()
@@ -41,7 +42,7 @@ if not _is_testing:
     clock = pg.time.Clock()
     font = pg.font.Font(None, 36)
 else:
-    # Заглушки для тестов
+    # Заглушки для тестовой среды
     screen = pg.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
     clock = pg.time.Clock()
     font = pg.font.Font(None, 36)
@@ -50,13 +51,13 @@ else:
 class GameObject:
     """Базовый класс для всех игровых объектов."""
 
-    def __init__(self, body_color: tuple = None) -> None:
+    def __init__(self, body_color=None):
         self.position = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
         self.body_color = body_color
 
     def draw_cell(self, position, color, draw_border=True):
         """
-        Рисует ячейку на экране по позиции и выбранному цвету.
+        Отрисовывает ячейку по позиции и цвету.
         :param position: координаты ячейки
         :param color: цвет ячейки
         :param draw_border: рисовать ли рамку
@@ -68,7 +69,7 @@ class GameObject:
 
     def draw(self):
         """
-        Метод, который должен быть реализован в дочерних классах.
+        Абстрактный метод для отрисовки, должен быть реализован в дочерних классах.
         """
         raise NotImplementedError(
             'Метод draw() должен быть переопределен в дочернем классе'
@@ -84,8 +85,8 @@ class Apple(GameObject):
 
     def randomize_position(self, used_positions=None):
         """
-        Располагает яблоко в случайной позиции, которая не занята.
-        :param used_positions: занятые позиции игрока
+        Располагает яблоко в случайной позиции, не занятой текущими.
+        :param used_positions: позиции, занятые игроком
         """
         while True:
             self.position = (
@@ -112,7 +113,7 @@ class Snake(GameObject):
 
     def update_direction(self, new_direction):
         """
-        Обновляет направление движения змейки.
+        Обновляет направление движения.
         :param new_direction: новое направление
         """
         self.direction = new_direction
@@ -139,11 +140,11 @@ class Snake(GameObject):
             self.draw_cell(position, self.body_color)
 
     def get_head_position(self):
-        """Возвращает позицию головы змейки."""
+        """Возвращает позицию головы."""
         return self.positions[0]
 
     def reset(self):
-        """Сброс состояния змейки при поражении."""
+        """Сброс состояния змейки."""
         self.position = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
         self.length = 1
         self.positions = [self.position]
@@ -153,9 +154,9 @@ class Snake(GameObject):
 
 def handle_keys(game_object):
     """
-    Обработка нажатий клавиш.
+    Обработка событий клавиш.
     :param game_object: текущий объект (змейка)
-    :return: False при закрытии окна или ESC
+    :return: False, если нужно закрыть игру
     """
     global SPEED
     for event in pg.event.get():
@@ -166,13 +167,13 @@ def handle_keys(game_object):
             if event.key == pg.K_ESCAPE:
                 return False
 
-            # Управление скоростью
+            # управление скоростью
             if event.key in (pg.K_PLUS, pg.K_EQUALS):
                 SPEED = min(SPEED + SPEED_STEP, MAX_SPEED)
             elif event.key == pg.K_MINUS:
                 SPEED = max(SPEED - SPEED_STEP, MIN_SPEED)
 
-            # Управление направлением
+            # управление движением
             if event.key == pg.K_UP and game_object.direction != DOWN:
                 game_object.update_direction(UP)
             elif event.key == pg.K_DOWN and game_object.direction != UP:
@@ -186,19 +187,18 @@ def handle_keys(game_object):
 
 
 def draw_speed():
-    """Отображение текущей скорости."""
+    """Отображение текущей скорости на экране."""
     speed_text = font.render(f'Скорость: {SPEED}', True, TEXT_COLOR)
     screen.blit(speed_text, (10, 10))
 
 
 def main():
-    """Основная функция запуска игры."""
+    """Основной цикл игры."""
     snake = Snake()
     apple = Apple(snake.positions)
 
     global SPEED
 
-    # Не запускаем игру в тестовой среде
     if _is_testing:
         return
 
@@ -214,7 +214,7 @@ def main():
 
         snake.move()
 
-        # Проверка на столкновение с собой
+        # столкновение с самим собой
         if snake.get_head_position() in snake.positions[1:]:
             snake.reset()
             apple.randomize_position(snake.positions)
