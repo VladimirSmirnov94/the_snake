@@ -1,4 +1,6 @@
-from random import randint, choice
+import random
+from random import choice
+from random import randint
 
 import pygame as pg
 
@@ -69,7 +71,9 @@ class GameObject:
 
     def draw(self) -> None:
         """Абстрактный метод для отрисовки объекта."""
-        raise NotImplementedError("Метод draw() должен быть переопределен в дочернем классе")
+        raise NotImplementedError(
+            'Метод draw() должен быть переопределен в дочернем классе'
+        )
 
 
 class Apple(GameObject):
@@ -81,7 +85,7 @@ class Apple(GameObject):
         self.randomize_position(used_positions or [])
 
     def randomize_position(self, used_positions: list = None) -> None:
-        """Устанавливает яблоку случайную позицию, не занятую другими объектами."""
+        """Устанавливает яблоку случайную позицию."""
         while True:
             self.position = (
                 randint(0, GRID_WIDTH - 1) * GRID_SIZE,
@@ -111,16 +115,16 @@ class Snake(GameObject):
         self.direction = new_direction
 
     def move(self):
-        """Перемещает змейку на одну ячейку в направлении движения."""
+        """Перемещает змейку на одну ячейку."""
         head_x, head_y = self.get_head_position()
         dir_x, dir_y = self.direction
-        
-        # Получаем новые координаты с помощью остатка от деления (телепортация)
+
+        # Получаем новые координаты с помощью остатка от деления
         new_head = (
             (head_x + dir_x * GRID_SIZE) % SCREEN_WIDTH,
             (head_y + dir_y * GRID_SIZE) % SCREEN_HEIGHT
         )
-        
+
         self.positions.insert(0, new_head)
         if len(self.positions) > self.length:
             self.last = self.positions.pop()
@@ -133,7 +137,7 @@ class Snake(GameObject):
         head_pos = self.get_head_position()
         self.draw_cell(head_pos, self.body_color)
 
-        # Стираем последний элемент (закрашиваем цветом фона без границы)
+        # Стираем последний элемент
         if self.last:
             self.draw_cell(self.last, BOARD_BACKGROUND_COLOR, draw_border=False)
 
@@ -142,28 +146,28 @@ class Snake(GameObject):
         return self.positions[0]
 
     def reset(self) -> None:
-        """Сбрасывает змейку в начальное состояние со случайным направлением."""
+        """Сбрасывает змейку в начальное состояние."""
         self.position = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
         self.length = 1
         self.positions = [self.position]
-        self.direction = choice([UP, DOWN, LEFT, RIGHT])
+        self.direction = random.choice([UP, DOWN, LEFT, RIGHT])
         self.last = None
 
 
 def handle_keys(game_object):
-    """Обрабатывает нажатия клавиш для управления змейкой. Возвращает False при выходе."""
+    """Обрабатывает нажатия клавиш."""
     global SPEED
-    
+
     for event in pg.event.get():
         if event.type == pg.QUIT:
             pg.quit()
             raise SystemExit
-        
+
         if event.type == pg.KEYDOWN:
             # Выход по ESC
             if event.key == pg.K_ESCAPE:
                 return False
-            
+
             new_direction = None
             if event.key == pg.K_UP and game_object.direction != DOWN:
                 new_direction = UP
@@ -173,15 +177,14 @@ def handle_keys(game_object):
                 new_direction = LEFT
             elif event.key == pg.K_RIGHT and game_object.direction != LEFT:
                 new_direction = RIGHT
-            # Управление скоростью
             elif event.key == pg.K_PLUS or event.key == pg.K_EQUALS:
                 SPEED = min(SPEED + SPEED_STEP, MAX_SPEED)
             elif event.key == pg.K_MINUS:
                 SPEED = max(SPEED - SPEED_STEP, MIN_SPEED)
-            
+
             if new_direction:
                 game_object.update_direction(new_direction)
-    
+
     return True
 
 
@@ -195,12 +198,12 @@ def main():
     """Основная функция игры с главным игровым циклом."""
     snake = Snake()
     apple = Apple(snake.positions)
-    
+
     global SPEED
 
     # Начальная очистка экрана
     screen.fill(BOARD_BACKGROUND_COLOR)
-    
+
     # Начальная отрисовка объектов
     apple.draw()
     snake.draw()
@@ -209,7 +212,7 @@ def main():
 
     while True:
         clock.tick(SPEED)
-        
+
         # Обработка клавиш с проверкой выхода
         if not handle_keys(snake):
             break
@@ -232,7 +235,7 @@ def main():
         snake.draw()
         draw_speed()
         pg.display.update()
-    
+
     pg.quit()
 
 
