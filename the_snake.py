@@ -31,7 +31,7 @@ SPEED_STEP = 2
 # Проверка, тестовая ли среда
 _is_testing = 'pytest' in sys.modules or 'unittest' in sys.modules
 
-# Инициализация Pygame, если не тестовая среда
+# Инициализация Pygame
 if not _is_testing:
     pg.init()
     pg.font.init()
@@ -43,6 +43,8 @@ if not _is_testing:
     font = pg.font.Font(None, 36)
 else:
     # Заглушки для тестовой среды
+    pg.display.init()
+    pg.font.init()
     screen = pg.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
     clock = pg.time.Clock()
     font = pg.font.Font(None, 36)
