@@ -139,36 +139,47 @@ class Snake(GameObject):
         self.last = None
 
 
+def _handle_speed(event):
+    """Обработка изменения скорости."""
+    global SPEED
+    if event.key in (pg.K_PLUS, pg.K_EQUALS):
+        SPEED = min(SPEED + SPEED_STEP, MAX_SPEED)
+        return True
+    if event.key == pg.K_MINUS:
+        SPEED = max(SPEED - SPEED_STEP, MIN_SPEED)
+        return True
+    return False
+
+
+def _handle_direction(event, game_object):
+    """Обработка изменения направления."""
+    if event.key == pg.K_UP and game_object.direction != DOWN:
+        game_object.update_direction(UP)
+        return True
+    if event.key == pg.K_DOWN and game_object.direction != UP:
+        game_object.update_direction(DOWN)
+        return True
+    if event.key == pg.K_LEFT and game_object.direction != RIGHT:
+        game_object.update_direction(LEFT)
+        return True
+    if event.key == pg.K_RIGHT and game_object.direction != LEFT:
+        game_object.update_direction(RIGHT)
+        return True
+    return False
+
+
 def handle_keys(game_object):
     """Обработка событий клавиш. Возвращает False при выходе."""
-    global SPEED
-
     for event in pg.event.get():
         if event.type == pg.QUIT:
             return False
-
         if event.type != pg.KEYDOWN:
             continue
-
         if event.key == pg.K_ESCAPE:
             return False
-
-        # управление скоростью
-        if event.key in (pg.K_PLUS, pg.K_EQUALS):
-            SPEED = min(SPEED + SPEED_STEP, MAX_SPEED)
-        elif event.key == pg.K_MINUS:
-            SPEED = max(SPEED - SPEED_STEP, MIN_SPEED)
-
-        # управление движением
-        if event.key == pg.K_UP and game_object.direction != DOWN:
-            game_object.update_direction(UP)
-        elif event.key == pg.K_DOWN and game_object.direction != UP:
-            game_object.update_direction(DOWN)
-        elif event.key == pg.K_LEFT and game_object.direction != RIGHT:
-            game_object.update_direction(LEFT)
-        elif event.key == pg.K_RIGHT and game_object.direction != LEFT:
-            game_object.update_direction(RIGHT)
-
+        if _handle_speed(event):
+            continue
+        _handle_direction(event, game_object)
     return True
 
 
@@ -185,7 +196,6 @@ def main():
 
     snake = Snake()
     apple = Apple(snake.positions)
-
     global SPEED
 
     while True:
@@ -200,7 +210,6 @@ def main():
 
         snake.move()
 
-        # столкновение с самим собой
         if snake.get_head_position() in snake.positions[1:]:
             snake.reset()
             apple.randomize_position(snake.positions)
