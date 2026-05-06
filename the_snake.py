@@ -1,6 +1,6 @@
 import random
-import pygame as pg
 
+import pygame as pg
 
 # Константы для размеров поля и сетки:
 SCREEN_WIDTH, SCREEN_HEIGHT = 640, 480
@@ -117,7 +117,6 @@ class Snake(GameObject):
         head_x, head_y = self.get_head_position()
         dir_x, dir_y = self.direction
 
-        # Получаем новые координаты с помощью остатка от деления
         new_head = (
             (head_x + dir_x * GRID_SIZE) % SCREEN_WIDTH,
             (head_y + dir_y * GRID_SIZE) % SCREEN_HEIGHT
