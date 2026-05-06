@@ -1,5 +1,7 @@
 import random
+
 import pygame as pg
+
 
 # Константы для размеров поля и сетки:
 SCREEN_WIDTH, SCREEN_HEIGHT = 640, 480
@@ -160,31 +162,37 @@ def handle_keys(game_object):
             pg.quit()
             raise SystemExit
 
-        if event.type == pg.KEYDOWN:
-            if event.key == pg.K_ESCAPE:
-                return False
+        if event.type != pg.KEYDOWN:
+            continue
 
-            new_direction = None
-            if (event.key == pg.K_UP
-                    and game_object.direction != DOWN):
-                new_direction = UP
-            elif (event.key == pg.K_DOWN
-                  and game_object.direction != UP):
-                new_direction = DOWN
-            elif (event.key == pg.K_LEFT
-                  and game_object.direction != RIGHT):
-                new_direction = LEFT
-            elif (event.key == pg.K_RIGHT
-                  and game_object.direction != LEFT):
-                new_direction = RIGHT
-            elif (event.key == pg.K_PLUS
-                  or event.key == pg.K_EQUALS):
-                SPEED = min(SPEED + SPEED_STEP, MAX_SPEED)
-            elif event.key == pg.K_MINUS:
-                SPEED = max(SPEED - SPEED_STEP, MIN_SPEED)
+        if event.key == pg.K_ESCAPE:
+            return False
 
-            if new_direction:
-                game_object.update_direction(new_direction)
+        speed_keys = {
+            pg.K_PLUS: SPEED + SPEED_STEP,
+            pg.K_EQUALS: SPEED + SPEED_STEP,
+            pg.K_MINUS: SPEED - SPEED_STEP,
+        }
+
+        if event.key in speed_keys:
+            if event.key == pg.K_MINUS:
+                SPEED = max(speed_keys[event.key], MIN_SPEED)
+            else:
+                SPEED = min(speed_keys[event.key], MAX_SPEED)
+            return True
+
+        direction_map = {
+            (pg.K_UP, DOWN): UP,
+            (pg.K_DOWN, UP): DOWN,
+            (pg.K_LEFT, RIGHT): LEFT,
+            (pg.K_RIGHT, LEFT): RIGHT,
+        }
+
+        new_direction = direction_map.get(
+            (event.key, game_object.direction)
+        )
+        if new_direction:
+            game_object.update_direction(new_direction)
 
     return True
 
