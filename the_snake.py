@@ -36,13 +36,10 @@ if not _is_testing:
     pg.init()
     pg.font.init()
     screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pg.display.set_caption(
-        'Змейка | Стрелки - движение | ESC - выход | +/- скорость'
-    )
+    pg.display.set_caption('Змейка | ESC - выход | +/- скорость')
     clock = pg.time.Clock()
     font = pg.font.Font(None, 36)
 else:
-    # Заглушки для тестовой среды
     pg.display.init()
     pg.font.init()
     screen = pg.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -58,21 +55,14 @@ class GameObject:
         self.body_color = body_color
 
     def draw_cell(self, position, color, draw_border=True):
-        """
-        Отрисовывает ячейку по позиции и цвету.
-        :param position: координаты ячейки
-        :param color: цвет ячейки
-        :param draw_border: рисовать ли рамку
-        """
+        """Отрисовывает ячейку по позиции и цвету."""
         rect = pg.Rect(position, (GRID_SIZE, GRID_SIZE))
         pg.draw.rect(screen, color, rect)
         if draw_border:
             pg.draw.rect(screen, BORDER_COLOR, rect, 1)
 
     def draw(self):
-        """
-        Абстрактный метод для отрисовки, должен быть реализован в дочерних классах.
-        """
+        """Абстрактный метод для отрисовки."""
         raise NotImplementedError(
             'Метод draw() должен быть переопределен в дочернем классе'
         )
@@ -86,10 +76,7 @@ class Apple(GameObject):
         self.randomize_position(used_positions or [])
 
     def randomize_position(self, used_positions=None):
-        """
-        Располагает яблоко в случайной позиции, не занятой текущими.
-        :param used_positions: позиции, занятые игроком
-        """
+        """Располагает яблоко в случайной позиции."""
         while True:
             self.position = (
                 random.randrange(GRID_WIDTH) * GRID_SIZE,
@@ -114,16 +101,11 @@ class Snake(GameObject):
         self.last = None
 
     def update_direction(self, new_direction):
-        """
-        Обновляет направление движения.
-        :param new_direction: новое направление
-        """
+        """Обновляет направление движения."""
         self.direction = new_direction
 
     def move(self):
-        """
-        Перемещает змейку в текущем направлении.
-        """
+        """Перемещает змейку в текущем направлении."""
         head_x, head_y = self.get_head_position()
         dir_x, dir_y = self.direction
         new_head = (
@@ -154,37 +136,44 @@ class Snake(GameObject):
         self.last = None
 
 
-def handle_keys(game_object):
-    """
-    Обработка событий клавиш.
-    :param game_object: текущий объект (змейка)
-    :return: False, если нужно закрыть игру
-    """
+def _change_speed(event):
+    """Изменяет скорость игры."""
     global SPEED
+    if event.key in (pg.K_PLUS, pg.K_EQUALS):
+        SPEED = min(SPEED + SPEED_STEP, MAX_SPEED)
+        return True
+    if event.key == pg.K_MINUS:
+        SPEED = max(SPEED - SPEED_STEP, MIN_SPEED)
+        return True
+    return False
+
+
+def _change_direction(event, snake):
+    """Изменяет направление движения змейки."""
+    key = event.key
+    direction = snake.direction
+    if key == pg.K_UP and direction != DOWN:
+        snake.update_direction(UP)
+    elif key == pg.K_DOWN and direction != UP:
+        snake.update_direction(DOWN)
+    elif key == pg.K_LEFT and direction != RIGHT:
+        snake.update_direction(LEFT)
+    elif key == pg.K_RIGHT and direction != LEFT:
+        snake.update_direction(RIGHT)
+
+
+def handle_keys(snake):
+    """Обработка событий клавиш. Возвращает False при выходе."""
     for event in pg.event.get():
         if event.type == pg.QUIT:
             return False
-
-        if event.type == pg.KEYDOWN:
-            if event.key == pg.K_ESCAPE:
-                return False
-
-            # управление скоростью
-            if event.key in (pg.K_PLUS, pg.K_EQUALS):
-                SPEED = min(SPEED + SPEED_STEP, MAX_SPEED)
-            elif event.key == pg.K_MINUS:
-                SPEED = max(SPEED - SPEED_STEP, MIN_SPEED)
-
-            # управление движением
-            if event.key == pg.K_UP and game_object.direction != DOWN:
-                game_object.update_direction(UP)
-            elif event.key == pg.K_DOWN and game_object.direction != UP:
-                game_object.update_direction(DOWN)
-            elif event.key == pg.K_LEFT and game_object.direction != RIGHT:
-                game_object.update_direction(LEFT)
-            elif event.key == pg.K_RIGHT and game_object.direction != LEFT:
-                game_object.update_direction(RIGHT)
-
+        if event.type != pg.KEYDOWN:
+            continue
+        if event.key == pg.K_ESCAPE:
+            return False
+        if _change_speed(event):
+            continue
+        _change_direction(event, snake)
     return True
 
 
@@ -196,13 +185,12 @@ def draw_speed():
 
 def main():
     """Основной цикл игры."""
-    snake = Snake()
-    apple = Apple(snake.positions)
-
-    global SPEED
-
     if _is_testing:
         return
+
+    snake = Snake()
+    apple = Apple(snake.positions)
+    global SPEED
 
     while True:
         clock.tick(SPEED)
@@ -216,7 +204,6 @@ def main():
 
         snake.move()
 
-        # столкновение с самим собой
         if snake.get_head_position() in snake.positions[1:]:
             snake.reset()
             apple.randomize_position(snake.positions)
