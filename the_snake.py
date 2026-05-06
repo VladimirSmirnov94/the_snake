@@ -1,7 +1,4 @@
 import random
-from random import choice
-from random import randint
-
 import pygame as pg
 
 # Константы для размеров поля и сетки:
@@ -88,8 +85,8 @@ class Apple(GameObject):
         """Устанавливает яблоку случайную позицию."""
         while True:
             self.position = (
-                randint(0, GRID_WIDTH - 1) * GRID_SIZE,
-                randint(0, GRID_HEIGHT - 1) * GRID_SIZE
+                random.randrange(GRID_WIDTH) * GRID_SIZE,
+                random.randrange(GRID_HEIGHT) * GRID_SIZE
             )
             if used_positions is None or self.position not in used_positions:
                 break
@@ -133,13 +130,13 @@ class Snake(GameObject):
 
     def draw(self) -> None:
         """Отрисовывает только голову змейки."""
-        # Отрисовываем только голову змеи
         head_pos = self.get_head_position()
         self.draw_cell(head_pos, self.body_color)
 
-        # Стираем последний элемент
         if self.last:
-            self.draw_cell(self.last, BOARD_BACKGROUND_COLOR, draw_border=False)
+            self.draw_cell(
+                self.last, BOARD_BACKGROUND_COLOR, draw_border=False
+            )
 
     def get_head_position(self) -> tuple:
         """Возвращает координаты головы змейки."""
@@ -164,20 +161,24 @@ def handle_keys(game_object):
             raise SystemExit
 
         if event.type == pg.KEYDOWN:
-            # Выход по ESC
             if event.key == pg.K_ESCAPE:
                 return False
 
             new_direction = None
-            if event.key == pg.K_UP and game_object.direction != DOWN:
+            if (event.key == pg.K_UP
+                    and game_object.direction != DOWN):
                 new_direction = UP
-            elif event.key == pg.K_DOWN and game_object.direction != UP:
+            elif (event.key == pg.K_DOWN
+                  and game_object.direction != UP):
                 new_direction = DOWN
-            elif event.key == pg.K_LEFT and game_object.direction != RIGHT:
+            elif (event.key == pg.K_LEFT
+                  and game_object.direction != RIGHT):
                 new_direction = LEFT
-            elif event.key == pg.K_RIGHT and game_object.direction != LEFT:
+            elif (event.key == pg.K_RIGHT
+                  and game_object.direction != LEFT):
                 new_direction = RIGHT
-            elif event.key == pg.K_PLUS or event.key == pg.K_EQUALS:
+            elif (event.key == pg.K_PLUS
+                  or event.key == pg.K_EQUALS):
                 SPEED = min(SPEED + SPEED_STEP, MAX_SPEED)
             elif event.key == pg.K_MINUS:
                 SPEED = max(SPEED - SPEED_STEP, MIN_SPEED)
@@ -201,10 +202,7 @@ def main():
 
     global SPEED
 
-    # Начальная очистка экрана
     screen.fill(BOARD_BACKGROUND_COLOR)
-
-    # Начальная отрисовка объектов
     apple.draw()
     snake.draw()
     draw_speed()
@@ -213,24 +211,20 @@ def main():
     while True:
         clock.tick(SPEED)
 
-        # Обработка клавиш с проверкой выхода
         if not handle_keys(snake):
             break
 
-        # Проверка съедания яблока
         if snake.get_head_position() == apple.position:
             snake.length += 1
             apple.randomize_position(snake.positions)
 
         snake.move()
 
-        # Проверка столкновения с собой
         if snake.get_head_position() in snake.positions[1:]:
             snake.reset()
             apple.randomize_position(snake.positions)
             screen.fill(BOARD_BACKGROUND_COLOR)
 
-        # Отрисовка объектов
         apple.draw()
         snake.draw()
         draw_speed()
