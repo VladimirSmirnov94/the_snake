@@ -95,10 +95,8 @@ class Snake(GameObject):
 
     def __init__(self):
         super().__init__(body_color=SNAKE_COLOR)
-        self.length = 1
-        self.positions = [self.position]
+        self.reset()
         self.direction = RIGHT
-        self.last = None
 
     def update_direction(self, new_direction):
         """Обновляет направление движения."""
@@ -108,11 +106,11 @@ class Snake(GameObject):
         """Перемещает змейку в текущем направлении."""
         head_x, head_y = self.get_head_position()
         dir_x, dir_y = self.direction
-        new_head = (
+        self.position = (
             (head_x + dir_x * GRID_SIZE) % SCREEN_WIDTH,
             (head_y + dir_y * GRID_SIZE) % SCREEN_HEIGHT
         )
-        self.positions.insert(0, new_head)
+        self.positions.insert(0, self.position)
         if len(self.positions) > self.length:
             self.last = self.positions.pop()
         else:
@@ -198,14 +196,14 @@ def main():
         if not handle_keys(snake):
             break
 
+        snake.move()
+
         if snake.get_head_position() == apple.position:
             snake.length += 1
             apple.randomize_position(snake.positions)
-
-        snake.move()
-
-        if snake.get_head_position() in snake.positions[1:]:
+        elif snake.get_head_position() in snake.positions[1:]:
             snake.reset()
+            screen.fill(BOARD_BACKGROUND_COLOR)
             apple.randomize_position(snake.positions)
 
         screen.fill(BOARD_BACKGROUND_COLOR)
