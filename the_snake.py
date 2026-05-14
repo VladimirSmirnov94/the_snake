@@ -31,7 +31,8 @@ SPEED_STEP = 2
 # Инициализация Pygame
 pg.init()
 pg.font.init()
-screen = pg.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pg.display.set_caption('Змейка | ESC - выход | +/- скорость')
 clock = pg.time.Clock()
 font = pg.font.Font(None, 36)
 
@@ -175,10 +176,6 @@ def draw_speed():
 def main():
     """Основной цикл игры."""
     global screen
-
-    screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pg.display.set_caption('Змейка | ESC - выход | +/- скорость')
-
     snake = Snake()
     apple = Apple(snake.positions)
 
@@ -211,6 +208,7 @@ def main():
         pg.display.update()
 
     pg.quit()
+    sys.exit()
 
 
 if __name__ == '__main__':
