@@ -28,23 +28,13 @@ MIN_SPEED = 5
 MAX_SPEED = 40
 SPEED_STEP = 2
 
-# Проверка, тестовая ли среда
-_is_testing = 'pytest' in sys.modules or 'unittest' in sys.modules
-
 # Инициализация Pygame
-if not _is_testing:
-    pg.init()
-    pg.font.init()
-    screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pg.display.set_caption('Змейка | ESC - выход | +/- скорость')
-    clock = pg.time.Clock()
-    font = pg.font.Font(None, 36)
-else:
-    pg.display.init()
-    pg.font.init()
-    screen = pg.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
-    clock = pg.time.Clock()
-    font = pg.font.Font(None, 36)
+pg.init()
+pg.font.init()
+screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pg.display.set_caption('Змейка | ESC - выход | +/- скорость')
+clock = pg.time.Clock()
+font = pg.font.Font(None, 36)
 
 
 class GameObject:
@@ -118,6 +108,8 @@ class Snake(GameObject):
 
     def draw(self):
         """Отрисовка змейки."""
+        if self.last:
+            self.draw_cell(self.last, BOARD_BACKGROUND_COLOR, False)
         for position in self.positions:
             self.draw_cell(position, self.body_color)
 
@@ -183,30 +175,40 @@ def draw_speed():
 
 def main():
     """Основной цикл игры."""
-    if _is_testing:
-        return
 
     snake = Snake()
     apple = Apple(snake.positions)
-    global SPEED
 
     while True:
         clock.tick(SPEED)
 
+        # Обработка клавиш
         if not handle_keys(snake):
             break
 
+        # Движение змейки
         snake.move()
 
-        if snake.get_head_position() == apple.position:
-            snake.length += 1
-            apple.randomize_position(snake.positions)
-        elif snake.get_head_position() in snake.positions[1:]:
+        # Получаем позицию головы
+        head = snake.get_head_position()
+        body = snake.positions[1:]  # тело без головы
+
+        # Проверка столкновения с собой
+        if head in body:
             snake.reset()
+            # очистить экран при столкновении
             screen.fill(BOARD_BACKGROUND_COLOR)
             apple.randomize_position(snake.positions)
+            continue  # пропускаем остальную логику этого кадра
 
-        screen.fill(BOARD_BACKGROUND_COLOR)
+        # Проверяем, съела ли змейка яблоко
+        if head == apple.position:
+            snake.length += 1  # увеличиваем длину змейки
+            apple.randomize_position(snake.positions)  # ставим новое яблоко
+
+        # Отрисовка
+        if snake.last:  # Затираем последнюю ячейку, если хвост сдвинулся
+            GameObject().draw_cell(snake.last, BOARD_BACKGROUND_COLOR, False)
         apple.draw()
         snake.draw()
         draw_speed()
