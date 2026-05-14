@@ -31,8 +31,7 @@ SPEED_STEP = 2
 # Инициализация Pygame
 pg.init()
 pg.font.init()
-screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pg.display.set_caption('Змейка | ESC - выход | +/- скорость')
+screen = pg.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
 clock = pg.time.Clock()
 font = pg.font.Font(None, 36)
 
@@ -175,6 +174,10 @@ def draw_speed():
 
 def main():
     """Основной цикл игры."""
+    global screen
+
+    screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    pg.display.set_caption('Змейка | ESC - выход | +/- скорость')
 
     snake = Snake()
     apple = Apple(snake.positions)
@@ -182,32 +185,25 @@ def main():
     while True:
         clock.tick(SPEED)
 
-        # Обработка клавиш
         if not handle_keys(snake):
             break
 
-        # Движение змейки
         snake.move()
 
-        # Получаем позицию головы
         head = snake.get_head_position()
-        body = snake.positions[1:]  # тело без головы
+        body = snake.positions[1:]
 
-        # Проверка столкновения с собой
         if head in body:
             snake.reset()
-            # очистить экран при столкновении
             screen.fill(BOARD_BACKGROUND_COLOR)
             apple.randomize_position(snake.positions)
-            continue  # пропускаем остальную логику этого кадра
+            continue
 
-        # Проверяем, съела ли змейка яблоко
         if head == apple.position:
-            snake.length += 1  # увеличиваем длину змейки
-            apple.randomize_position(snake.positions)  # ставим новое яблоко
+            snake.length += 1
+            apple.randomize_position(snake.positions)
 
-        # Отрисовка
-        if snake.last:  # Затираем последнюю ячейку, если хвост сдвинулся
+        if snake.last:
             GameObject().draw_cell(snake.last, BOARD_BACKGROUND_COLOR, False)
         apple.draw()
         snake.draw()
