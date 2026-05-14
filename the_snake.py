@@ -28,7 +28,6 @@ MIN_SPEED = 5
 MAX_SPEED = 40
 SPEED_STEP = 2
 
-# Инициализация Pygame
 pg.init()
 pg.font.init()
 screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
