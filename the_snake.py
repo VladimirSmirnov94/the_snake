@@ -85,7 +85,6 @@ class Snake(GameObject):
     def __init__(self):
         super().__init__(body_color=SNAKE_COLOR)
         self.reset()
-        self.direction = RIGHT
 
     def update_direction(self, new_direction):
         """Обновляет направление движения."""
@@ -121,7 +120,7 @@ class Snake(GameObject):
         self.position = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
         self.length = 1
         self.positions = [self.position]
-        self.direction = random.choice([UP, DOWN, LEFT, RIGHT])
+        self.direction = RIGHT
         self.last = None
 
 
@@ -187,20 +186,16 @@ def main():
         snake.move()
 
         head = snake.get_head_position()
-        body = snake.positions[1:]
 
-        if head in body:
+        if head in snake.positions[1:]:
             snake.reset()
             screen.fill(BOARD_BACKGROUND_COLOR)
             apple.randomize_position(snake.positions)
-            continue
 
-        if head == apple.position:
+        elif head == apple.position:
             snake.length += 1
             apple.randomize_position(snake.positions)
 
-        if snake.last:
-            GameObject().draw_cell(snake.last, BOARD_BACKGROUND_COLOR, False)
         apple.draw()
         snake.draw()
         draw_speed()
